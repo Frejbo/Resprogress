@@ -47,10 +47,8 @@ travels = await CalendarHelper.getTravel(travels[0])
 const startDate = travels[0]["startDate"]
 const endDate = travels[travels.length-1]["endDate"]
 const duration = endDate - startDate
-console.log(travels)
 
 points = getPoints(travels)
-console.log(points)
 
 
 
@@ -97,10 +95,9 @@ Script.complete()
 function getPoints(data) {
   let points = []
   for (e of data) {
-    console.log(e)
     for (date of ["startDate", "endDate"]) {
       let d = new Date(e[date])
-      let df = new DateFormatter()
+//       let df = new DateFormatter()
       let color
       if (date == "startDate") {
         color = colors[mode].start
@@ -108,10 +105,10 @@ function getPoints(data) {
       else if (date == "endDate") {
         color = colors[mode].end
       }
-      df.dateFormat = "HH:mm"
+//       df.dateFormat = "HH:mm"
       points.push({
         "percentage":((d-startDate) * 0.000017) / ((endDate - startDate) * 0.000017),
-        "time":df.string(d),
+        "date":d,
         "color":color
       })
     }
@@ -163,33 +160,29 @@ function DrawProgressbar() {
     ctx.setFillColor(p.color)
     ctx.fillEllipse(new Rect(pos-10, ctx.size.height-20, 20, 20))
     ctx.setTextColor(colors[mode].text)
-    ctx.drawText(p["time"], new Point(pos-19, ctx.size.height-40))
+    let t = GetTimeFromDate(p["date"])
+    ctx.drawText(t, new Point(pos-19, ctx.size.height-40))
   }
 }
 
+function GetTimeFromDate(date) {
+  let df = new DateFormatter()
+  df.dateFormat = "HH:mm"
+  return df.string(date)
+}
 
-function GetTimeUntilNextStation() {
-  let point = new Date(travels[travels.length-1]["endDate"]).getMilliseconds()
-  for (p of points) {
-    let d = new Date(p.time)
-    if (d > Date()) {
-      point = new Date(p)
-      break
-    }
-  }
-  console.log(point)
-  let date = new Date().getMilliseconds()
-  let time_left = point - date
-
-  return (time_left.toString())
+function GetTimeToNextPoint() {
+  let ps = points.filter((p) => {
+    return (p.percentage > getProgress())
+  })
+  let nextDate = ps[0].date
+  return ((nextDate - new Date()) * 0.000017)
 }
 function DrawTimeLabel() {
-  console.log(travels)
-  console.log(GetTimeUntilNextStation())
-//   const df = new DateFormatter()
-//   let d = new Date(endDate - new Date())
-//   console.log(d.getMinutes())
   ctx.setTextColor(colors[mode].text)
-  ctx.setFont(Font.largeTitle(64))
-  ctx.drawText("test", new Point(0, 0))
+  ctx.setFont(Font.boldSystemFont(100))
+  let text = Math.ceil(GetTimeToNextPoint()).toString()
+  ctx.drawText(text, new Point(0, 0))
+  ctx.setFont(Font.semiboldSystemFont(40))
+  ctx.drawText("min", new Point(130, 60)) // behöver räkna ut width på tiden för att veta var denna ska placeras.
 }
