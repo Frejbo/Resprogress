@@ -1,7 +1,7 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: deep-gray; icon-glyph: tasks;
-let CalendarHelper = importModule("Calendar Helper")
+let CalendarHelper = importModule("lib/Calendar Helper")
 
 const bg = new Color("1B1B1C")
 let points = []
@@ -37,7 +37,7 @@ let travels = await CalendarHelper.getUpcomingTravelIDs()
 if (travels.length == 0) {
 // no active or future travelling
   let w = new ListWidget()
-  w.addText("Ingen kommande eller pågående resa hittades.").centerAlignText()
+  w.addText("Ingen kommande eller pĂĽgĂĽende resa hittades.").centerAlignText()
   w.presentMedium()
   Script.complete()
   return
@@ -184,5 +184,5 @@ function DrawTimeLabel() {
   let text = Math.ceil(GetTimeToNextPoint()).toString()
   ctx.drawText(text, new Point(0, 0))
   ctx.setFont(Font.semiboldSystemFont(40))
-  ctx.drawText("min", new Point(130, 60)) // behöver räkna ut width på tiden för att veta var denna ska placeras.
+  ctx.drawText("min", new Point(100*text.length*.7, 60)) // behĂśver rĂ¤kna ut width pĂĽ tid-stringen fĂśr att veta var denna ska placeras. Denna formel verkar funka tills vidare.
 }
