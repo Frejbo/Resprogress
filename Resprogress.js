@@ -1,7 +1,7 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: deep-gray; icon-glyph: tasks;
-let CalendarHelper = importModule("lib/Calendar Helper")
+let CalendarHelper = importModule("Calendar Helper")
 
 const bg = new Color("1B1B1C")
 let points = []
@@ -48,7 +48,7 @@ const startDate = travels[0]["startDate"]
 const endDate = travels[travels.length-1]["endDate"]
 const duration = endDate - startDate
 
-points = getPoints(travels)
+// points = getPoints(travels)
 
 
 
@@ -75,8 +75,7 @@ ctx.respectScreenScale = true
 
 DrawProgressbar()
 DrawTimeLabel()
-
-
+DrawNextStations()
 
 
 ctx.fillPath()
@@ -92,12 +91,11 @@ Script.complete()
 
 
 
-function getPoints(data) {
+function getPoints(data, sliceEnd = false) {
   let points = []
   for (e of data) {
     for (date of ["startDate", "endDate"]) {
       let d = new Date(e[date])
-//       let df = new DateFormatter()
       let color
       if (date == "startDate") {
         color = colors[mode].start
@@ -105,15 +103,27 @@ function getPoints(data) {
       else if (date == "endDate") {
         color = colors[mode].end
       }
-//       df.dateFormat = "HH:mm"
+      
+      let name
+      if (date == "startDate") {
+        name = e.details.Stops[0].name
+      }
+      else {
+        name = e.details.Stops[e.details.Stops.length-1].name
+      }
+      
       points.push({
+        "name":name,
         "percentage":((d-startDate) * 0.000017) / ((endDate - startDate) * 0.000017),
         "date":d,
         "color":color
       })
     }
   }
-  return points.slice(1, -1)
+  if (sliceEnd) {
+    points = points.slice(1, -1)
+  }
+  return points
 }
 
 function getProgress() {
@@ -128,7 +138,7 @@ function DrawProgressbar() {
   ctx.addPath(progbg)
   ctx.fillPath()
   
-  for (p of points) {
+  for (p of getPoints(travels, true)) {
     let pos = ctx.size.width*p["percentage"]
     
     // add progressbar bg
@@ -154,7 +164,7 @@ function DrawProgressbar() {
   ctx.setFillColor(colors[mode].start)
   ctx.setFont(Font.mediumSystemFont(16))
   ctx.setTextAlignedCenter()
-  for (p of points) {
+  for (p of getPoints(travels, true)) {
     // add points
     let pos = ctx.size.width*p["percentage"]
     ctx.setFillColor(p.color)
@@ -165,6 +175,8 @@ function DrawProgressbar() {
   }
 }
 
+// function GetNextStation()
+
 function GetTimeFromDate(date) {
   let df = new DateFormatter()
   df.dateFormat = "HH:mm"
@@ -172,7 +184,7 @@ function GetTimeFromDate(date) {
 }
 
 function GetTimeToNextPoint() {
-  let ps = points.filter((p) => {
+  let ps = getPoints(travels).filter((p) => {
     return (p.percentage > getProgress())
   })
   let nextDate = ps[0].date
@@ -185,4 +197,46 @@ function DrawTimeLabel() {
   ctx.drawText(text, new Point(0, 0))
   ctx.setFont(Font.semiboldSystemFont(40))
   ctx.drawText("min", new Point(100*text.length*.7, 60)) // behĂśver rĂ¤kna ut width pĂĽ tid-stringen fĂśr att veta var denna ska placeras. Denna formel verkar funka tills vidare.
+}
+
+function GetUpcomingStations() {
+  let stations = []
+  for (travel of travels) {
+    for (s of travel["details"]["Stops"]) {
+      stations.push(s)
+    }
+  }
+  stations = stations.filter((s) => {
+    let df = new DateFormatter()
+    df.dateFormat = "HH:mm:ss"
+    let d = df.string(new Date())
+    return d < s.time
+  })
+  return stations
+}
+function DrawNextStations() {
+  let stations = GetUpcomingStations()
+  
+  let upcomingPoints = getPoints(travels).filter((p) => {
+    return (p.percentage > getProgress())
+  })
+  
+  let stationsUntilPoint = 0
+  for (s of stations) {
+    console.log(s)
+    if (s == upcomingPoints[0].name) {
+      break
+    }
+    stationsUntilPoint++
+  }
+  
+  ctx.setTextColor(colors[mode].text)
+  let x = ctx.size.width/1.9
+  ctx.setFont(Font.lightSystemFont(24))
+  ctx.drawText("NĂ¤sta station", new Point(x, 0))
+  ctx.setFont(Font.boldSystemFont(30))
+  ctx.drawText(stations[0].name, new Point(x, 30))
+  ctx.setTextColor(colors[mode].dimmedText)
+  ctx.setFont(Font.lightSystemFont(24))
+  ctx.drawText(`${stationsUntilPoint} stationer ĂĽterstĂĽr`, new Point(x, 66))
 }
