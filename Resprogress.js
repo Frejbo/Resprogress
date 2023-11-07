@@ -75,7 +75,12 @@ ctx.respectScreenScale = true
 
 DrawProgressbar()
 DrawTimeLabel()
-DrawNextStations()
+if (GetUpcomingStationsThisLeg().length > 0) {
+	DrawNextStations()
+}
+else {
+  DrawWaitForLeg()
+}
 
 
 ctx.fillPath()
@@ -199,9 +204,12 @@ function DrawTimeLabel() {
   ctx.drawText("min", new Point(100*text.length*.7, 60)) // behĂśver rĂ¤kna ut width pĂĽ tid-stringen fĂśr att veta var denna ska placeras. Denna formel verkar funka tills vidare.
 }
 
-function GetUpcomingStations() {
+function GetUpcomingStationsThisLeg() {
   let stations = []
   for (travel of travels) {
+    if (new Date() < new Date(travel.startDate)) {
+      continue
+    }
     for (s of travel["details"]["Stops"]) {
       stations.push(s)
     }
@@ -215,7 +223,7 @@ function GetUpcomingStations() {
   return stations
 }
 function DrawNextStations() {
-  let stations = GetUpcomingStations()
+  let stations = GetUpcomingStationsThisLeg()
   
   let upcomingPoints = getPoints(travels).filter((p) => {
     return (p.percentage > getProgress())
@@ -223,7 +231,6 @@ function DrawNextStations() {
   
   let stationsUntilPoint = 0
   for (s of stations) {
-    console.log(s)
     if (s == upcomingPoints[0].name) {
       break
     }
@@ -233,10 +240,22 @@ function DrawNextStations() {
   ctx.setTextColor(colors[mode].text)
   let x = ctx.size.width/1.9
   ctx.setFont(Font.lightSystemFont(24))
-  ctx.drawText("NĂ¤sta station", new Point(x, 0))
+	ctx.drawText("NĂ¤sta station", new Point(x, 0))
   ctx.setFont(Font.boldSystemFont(30))
-  ctx.drawText(stations[0].name, new Point(x, 30))
-  ctx.setTextColor(colors[mode].dimmedText)
+	ctx.drawText(stations[0].name, new Point(x, 30))
+	ctx.setTextColor(colors[mode].dimmedText)
   ctx.setFont(Font.lightSystemFont(24))
-  ctx.drawText(`${stationsUntilPoint} stationer ĂĽterstĂĽr`, new Point(x, 66))
+	ctx.drawText(`${stationsUntilPoint} stationer ĂĽterstĂĽr`, new Point(x, 66))
+}
+
+async function DrawWaitForLeg() {
+  let travel = await CalendarHelper.getUpcomingTravels()
+  let d = new Date(travel[0].startDate)
+  let df = new DateFormatter()
+  df.dateFormat = "HH:mm"
+//   let start = new Date(travel[0].startDate)
+//   let timeUntilBoarding = Math.round((start - new Date()) * 0.000017)
+  let x = ctx.size.width/1.9
+  ctx.setFont(Font.lightSystemFont(24))
+  ctx.drawText(`VĂ¤nta pĂĽ tĂĽget ${df.string(d)}`, new Point(x,0))
 }
