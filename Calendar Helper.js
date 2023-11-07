@@ -6,7 +6,8 @@ module.exports = {
   getTravelsToday,
   getUpcomingTravelIDs,
   getTravel,
-  getTravels
+  getTravels,
+  getUpcomingTravels
 }
 
 
@@ -31,6 +32,18 @@ async function getTravelsToday() {
   const c = await Calendar.forEventsByTitle("Automatiska resor")
   let data = await CalendarEvent.today([c])
   return convertEventToTravel(data)
+}
+
+async function getUpcomingTravels() {
+  let data = await getTravelsToday()
+  let d = new Date()
+  let travels = []
+  for (e of data) {
+    if (e["endDate"] > d) {
+      travels.push(e)
+    }
+  }
+  return travels
 }
 
 async function getUpcomingTravelIDs() {
