@@ -1,6 +1,3 @@
-// Variables used by Scriptable.
-// These must be at the very top of the file. Do not edit.
-// icon-color: deep-gray; icon-glyph: tasks;
 let CalendarHelper = importModule("Calendar Helper")
 
 const bg = new Color("1B1B1C")
@@ -37,7 +34,7 @@ let travels = await CalendarHelper.getUpcomingTravelIDs()
 if (travels.length == 0) {
 // no active or future travelling
   let w = new ListWidget()
-  w.addText("Ingen kommande eller pĂĽgĂĽende resa hittades.").centerAlignText()
+  w.addText("Ingen kommande eller pågående resa hittades.").centerAlignText()
   w.presentMedium()
   Script.complete()
   return
@@ -79,7 +76,7 @@ if (GetUpcomingStationsThisLeg().length > 0) {
 	DrawNextStations()
 }
 else {
-  DrawWaitForLeg()
+  await DrawWaitForLeg()
 }
 
 
@@ -201,7 +198,7 @@ function DrawTimeLabel() {
   let text = Math.ceil(GetTimeToNextPoint()).toString()
   ctx.drawText(text, new Point(0, 0))
   ctx.setFont(Font.semiboldSystemFont(40))
-  ctx.drawText("min", new Point(100*text.length*.7, 60)) // behĂśver rĂ¤kna ut width pĂĽ tid-stringen fĂśr att veta var denna ska placeras. Denna formel verkar funka tills vidare.
+  ctx.drawText("min", new Point(100*text.length*.7, 60)) // behöver räkna ut width på tid-stringen för att veta var denna ska placeras. Denna formel verkar funka tills vidare.
 }
 
 function GetUpcomingStationsThisLeg() {
@@ -240,12 +237,12 @@ function DrawNextStations() {
   ctx.setTextColor(colors[mode].text)
   let x = ctx.size.width/1.9
   ctx.setFont(Font.lightSystemFont(24))
-	ctx.drawText("NĂ¤sta station", new Point(x, 0))
+	ctx.drawText("Nästa station", new Point(x, 0))
   ctx.setFont(Font.boldSystemFont(30))
 	ctx.drawText(stations[0].name, new Point(x, 30))
 	ctx.setTextColor(colors[mode].dimmedText)
   ctx.setFont(Font.lightSystemFont(24))
-	ctx.drawText(`${stationsUntilPoint} stationer ĂĽterstĂĽr`, new Point(x, 66))
+	ctx.drawText(`${stationsUntilPoint-1} stationer kvar`, new Point(x, 66))
 }
 
 async function DrawWaitForLeg() {
@@ -255,7 +252,15 @@ async function DrawWaitForLeg() {
   df.dateFormat = "HH:mm"
 //   let start = new Date(travel[0].startDate)
 //   let timeUntilBoarding = Math.round((start - new Date()) * 0.000017)
-  let x = ctx.size.width/1.9
+  let x = ctx.size.width/1.6
+  ctx.setTextColor(colors[Device.isUsingDarkAppearance()].dimmedText)
   ctx.setFont(Font.lightSystemFont(24))
-  ctx.drawText(`VĂ¤nta pĂĽ tĂĽget ${df.string(d)}`, new Point(x,0))
+  ctx.drawText("Resan startar", new Point(x, 0))
+  ctx.setTextColor(colors[Device.isUsingDarkAppearance()].text)
+  ctx.setFont(Font.boldSystemFont(55))
+  ctx.drawText(df.string(d), new Point(x,24))
+  ctx.setTextColor(colors[Device.isUsingDarkAppearance()].dimmedText)
+  ctx.setFont(Font.lightSystemFont(24))
+  console.log(travel)
+  ctx.drawText(`från ${travel[0].details.Stops[0].name}`, new Point(x, 80))
 }
