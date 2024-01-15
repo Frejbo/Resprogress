@@ -1,5 +1,6 @@
 let CalendarHelper = importModule("Calendar Helper")
 
+
 const bg = new Color("1B1B1C")
 let points = []
 API_key = "e8e6589fc7b44336ba991293a816ced9"
@@ -166,6 +167,7 @@ function DrawProgressbar() {
   ctx.setFillColor(colors[mode].start)
   ctx.setFont(Font.mediumSystemFont(16))
   ctx.setTextAlignedCenter()
+  let i = 0
   for (p of getPoints(travels, true)) {
     // add points
     let pos = ctx.size.width*p["percentage"]
@@ -173,11 +175,15 @@ function DrawProgressbar() {
     ctx.fillEllipse(new Rect(pos-10, ctx.size.height-20, 20, 20))
     ctx.setTextColor(colors[mode].text)
     let t = GetTimeFromDate(p["date"])
-    ctx.drawText(t, new Point(pos-19, ctx.size.height-40))
+    
+    let xoffset = 0
+    if (i % 2 == 0) {
+      xoffset = -25
+    }
+    i++
+    ctx.drawText(t, new Point(pos+xoffset-10, ctx.size.height-40))
   }
 }
-
-// function GetNextStation()
 
 function GetTimeFromDate(date) {
   let df = new DateFormatter()
@@ -252,7 +258,7 @@ async function DrawWaitForLeg() {
   df.dateFormat = "HH:mm"
 //   let start = new Date(travel[0].startDate)
 //   let timeUntilBoarding = Math.round((start - new Date()) * 0.000017)
-  let x = ctx.size.width/1.6
+  let x = ctx.size.width/2
   ctx.setTextColor(colors[Device.isUsingDarkAppearance()].dimmedText)
   ctx.setFont(Font.lightSystemFont(24))
   ctx.drawText("Resan startar", new Point(x, 0))
